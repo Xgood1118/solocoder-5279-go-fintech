@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package fintech;
+
+option go_package = "github.com/fintech/core/internal/grpc/pb";
+
+// 账户服务
+service AccountService {
+  rpc CreateAccount(CreateAccountRequest) returns (AccountResponse);
+  rpc GetAccount(GetAccountRequest) returns (AccountResponse);
+  rpc GetBalance(GetBalanceRequest) returns (BalanceResponse);
+  rpc FreezeAccount(FreezeAccountRequest) returns (AccountResponse);
+  rpc UnfreezeAccount(UnfreezeAccountRequest) returns (AccountResponse);
+  rpc CloseAccount(CloseAccountRequest) returns (AccountResponse);
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+}
+
+// 转账服务
+service TransferService {
+  rpc IntraBankTransfer(IntraBankTransferRequest) returns (TransferResponse);
+  rpc CrossBankTransfer(CrossBankTransferRequest) returns (TransferResponse);
+  rpc GetTransfer(GetTransferRequest) returns (TransferResponse);
+  rpc ListTransfers(ListTransfersRequest) returns (ListTransfersResponse);
+}
+
+// 流水服务
+service LedgerService {
+  rpc ListLedgerEntries(ListLedgerEntriesRequest) returns (ListLedgerEntriesResponse);
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse);
+}
+
+// 枚举类型
+enum AccountType {
+  ACCOUNT_TYPE_UNSPECIFIED = 0;
+  ACCOUNT_TYPE_PERSONAL = 1;
+  ACCOUNT_TYPE_ENTERPRISE = 2;
+}
+
+enum AccountStatus {
+  ACCOUNT_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_STATUS_ACTIVE = 1;
+  ACCOUNT_STATUS_FROZEN = 2;
+  ACCOUNT_STATUS_CLOSED = 3;
+}
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_IN = 1;
+  DIRECTION_OUT = 2;
+}
+
+enum TransactionType {
+  TXN_TYPE_UNSPECIFIED = 0;
+  TXN_TYPE_DEPOSIT = 1;
+  TXN_TYPE_WITHDRAWAL = 2;
+  TXN_TYPE_TRANSFER_IN = 3;
+  TXN_TYPE_TRANSFER_OUT = 4;
+  TXN_TYPE_INTEREST = 5;
+}
+
+enum TransferStatus {
+  TRANSFER_STATUS_UNSPECIFIED = 0;
+  TRANSFER_STATUS_PENDING = 1;
+  TRANSFER_STATUS_SUCCESS = 2;
+  TRANSFER_STATUS_FAILED = 3;
+  TRANSFER_STATUS_CLEARING = 4;
+}
+
+// 消息类型
+message Money {
+  string amount = 1;
+  string currency = 2;
+}
+
+message Account {
+  string id = 1;
+  AccountType account_type = 2;
+  string account_no = 3;
+  string name = 4;
+  string id_card_no = 5;
+  AccountStatus status = 6;
+  Money balance = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message Transfer {
+  string id = 1;
+  string biz_id = 2;
+  string from_account_id = 3;
+  string to_account_id = 4;
+  Money amount = 5;
+  string remark = 6;
+  TransferStatus status = 7;
+  bool is_cross_bank = 8;
+  int64 created_at = 9;
+  int64 updated_at = 10;
+}
+
+message LedgerEntry {
+  string id = 1;
+  string account_id = 2;
+  string transfer_id = 3;
+  string biz_id = 4;
+  Direction direction = 5;
+  TransactionType type = 6;
+  Money amount = 7;
+  Money balance_after = 8;
+  string remark = 9;
+  int64 created_at = 10;
+}
+
+// 请求/响应
+message CreateAccountRequest {
+  AccountType account_type = 1;
+  string name = 2;
+  string id_card_no = 3;
+  string password = 4;
+  Money initial_balance = 5;
+}
+
+message GetAccountRequest {
+  string account_id = 1;
+}
+
+message GetBalanceRequest {
+  string account_id = 1;
+}
+
+message BalanceResponse {
+  string account_id = 1;
+  Money balance = 2;
+  Money available_balance = 3;
+}
+
+message FreezeAccountRequest {
+  string account_id = 1;
+  string reason = 2;
+}
+
+message UnfreezeAccountRequest {
+  string account_id = 1;
+}
+
+message CloseAccountRequest {
+  string account_id = 1;
+  string password = 2;
+}
+
+message ChangePasswordRequest {
+  string account_id = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+message ChangePasswordResponse {
+  bool success = 1;
+}
+
+message AccountResponse {
+  Account account = 1;
+}
+
+message ListAccountsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListAccountsResponse {
+  repeated Account accounts = 1;
+  int32 total = 2;
+}
+
+message IntraBankTransferRequest {
+  string biz_id = 1;
+  string from_account_id = 2;
+  string to_account_id = 3;
+  Money amount = 4;
+  string remark = 5;
+  string password = 6;
+}
+
+message CrossBankTransferRequest {
+  string biz_id = 1;
+  string from_account_id = 2;
+  string to_bank_code = 3;
+  string to_account_no = 4;
+  string to_account_name = 5;
+  Money amount = 6;
+  string remark = 7;
+  string password = 8;
+}
+
+message TransferResponse {
+  Transfer transfer = 1;
+}
+
+message GetTransferRequest {
+  string transfer_id = 1;
+}
+
+message ListTransfersRequest {
+  string account_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListTransfersResponse {
+  repeated Transfer transfers = 1;
+  int32 total = 2;
+}
+
+message ListLedgerEntriesRequest {
+  string account_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListLedgerEntriesResponse {
+  repeated LedgerEntry entries = 1;
+  int32 total = 2;
+}
+
+message ReconcileRequest {
+  string account_id = 1;
+}
+
+message ReconcileResponse {
+  bool consistent = 1;
+  Money balance_from_account = 2;
+  Money balance_from_ledger = 3;
+  string diff = 4;
+}
