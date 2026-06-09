@@ -14,6 +14,13 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func WriteError(w http.ResponseWriter, err error) {
+	if err == nil {
+		problem := fmterrors.NewInternal("unknown error")
+		w.Header().Set("Content-Type", "application/problem+json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(problem)
+		return
+	}
 	if problem, ok := err.(*fmterrors.Problem); ok {
 		w.Header().Set("Content-Type", "application/problem+json")
 		w.WriteHeader(problem.Status)

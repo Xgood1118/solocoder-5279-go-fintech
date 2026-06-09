@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+
+	fmterrors "github.com/fintech/core/pkg/errors"
 )
 
 func (h *Handler) ListLedgerEntries(w http.ResponseWriter, r *http.Request) {
@@ -13,7 +15,7 @@ func (h *Handler) ListLedgerEntries(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
 	if accountID == "" {
-		WriteError(w, nil)
+		WriteError(w, fmterrors.NewBadRequest("MISSING_ACCOUNT_ID", "缺少 account_id 参数"))
 		return
 	}
 
